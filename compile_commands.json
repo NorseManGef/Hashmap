@@ -1,0 +1,16 @@
+[
+  {
+    "arguments": [
+      "/nix/store/3ix5h74n7ar9950vwzp4dxmil70pmx0k-gcc-wrapper-13.3.0/bin/g++",
+      "-c",
+      "-I",
+      "Include",
+      "-o",
+      "bin/testmap",
+      "src/test_hashmap.cpp"
+    ],
+    "directory": "/home/norsemangef/Coding/C++/Projects/Hashmap",
+    "file": "/home/norsemangef/Coding/C++/Projects/Hashmap/src/test_hashmap.cpp",
+    "output": "/home/norsemangef/Coding/C++/Projects/Hashmap/bin/testmap"
+  }
+]
