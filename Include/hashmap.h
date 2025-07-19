@@ -74,6 +74,10 @@ public:
     /// @param key the key of the item we want to get
     /// @throws key_not_found if the key was not found
     const TValue& get(const TKey& key) const;
+    
+    /// @brief returns the number of items in the map
+    /// @returns size_t the number of items in the map
+    size_t size() const;
 
     Hashmap<TKey, TValue>& operator=(const Hashmap<TKey, TValue>& map); // copy operator
 
