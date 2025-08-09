@@ -1,0 +1,20 @@
+If:
+  PathMatch: .*\.inc
+
+Index:
+  Background: true
+
+CompileFlags:
+  Add: 
+    - -xc++-header
+    - -DCLANGD_ONLY
+    - -Wall
+    - -Wextra
+  
+  Compiler:
+    - g++
+
+Diagnostics:
+  UnusedIncludes: Strict
+  ClangTidy:
+    Add: [bugprone-use-after-move, misc-*, clang-analyzer-core*]

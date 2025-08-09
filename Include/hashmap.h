@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <iostream>
 
+const size_t DEFAULT_HASHMAP_BUCKET_COUNT = 16;
+
 template <typename TKey, typename TValue> class Hashmap;
 
 struct key_not_found: public std::logic_error {
@@ -24,9 +26,12 @@ template <typename TKey, typename TValue> struct Node {
     TKey key;
     TValue data;
     Node<TKey, TValue>* next;
+    
+    Node(const TKey& key, const TValue& data);
 };
 
 template <typename TKey, typename TValue> class Hashmap {
+    using Node_t = Node<TKey, TValue>;
 public:
     /// @brief default constructor
     Hashmap();
@@ -79,6 +84,9 @@ public:
     /// @returns size_t the number of items in the map
     size_t size() const;
 
+    /// @brief removes all data in the map
+    void clear();
+
     Hashmap<TKey, TValue>& operator=(const Hashmap<TKey, TValue>& map); // copy operator
 
     Hashmap<TKey, TValue>& operator=(Hashmap<TKey, TValue>&& map); // move operator
@@ -102,7 +110,13 @@ public:
     friend std::ostream& operator<< <>(std::ostream& out, const Hashmap<TKey, TValue>& map);
 
 private:
+    Node_t** _buckets;
+    size_t _bucket_count;
+    size_t _item_count;
 
+    void copy_from(Node_t** source, Node_t** destination, size_t size);
+    Node_t* get_node(hash_t hval, const TKey& key);
+    void add_node(hash_t hval, const TKey& key, const TValue& value);
 };
 
 #include "hashmap.inc"
