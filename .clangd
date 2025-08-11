@@ -10,6 +10,7 @@ CompileFlags:
     - -DCLANGD_ONLY
     - -Wall
     - -Wextra
+    - -Wpedantic
   
   Compiler:
     - g++
@@ -17,4 +18,11 @@ CompileFlags:
 Diagnostics:
   UnusedIncludes: Strict
   ClangTidy:
-    Add: [bugprone-use-after-move, misc-*, clang-analyzer-core*]
+    Add: [
+      bugprone-*, 
+      misc-*, 
+      clang-analyzer-core-*, 
+      google-*, -google-readability-*,
+      performance-*,
+      cppcoreguidelines-*
+    ]

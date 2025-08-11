@@ -1,3 +1,0 @@
-Checks: 'clang-analyzer-*, cppcoreguidelines-*, readability-*'
-HeaderFileExtensions: ['', 'h', 'hh', 'hpp', 'hxx', 'inc']
-ImplementationFileExtensions: ['c', 'cc', 'cpp', 'cxx']
