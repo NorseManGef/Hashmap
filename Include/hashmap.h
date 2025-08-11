@@ -1,9 +1,10 @@
-#include "hashmap_iter.h"
 #include "hash.h"
 #include <cstddef>
 #include <functional>
 #include <stdexcept>
 #include <iostream>
+
+#pragma once
 
 const size_t DEFAULT_HASHMAP_BUCKET_COUNT = 16;
 
@@ -92,10 +93,10 @@ public:
     Hashmap<TKey, TValue>& operator=(Hashmap<TKey, TValue>&& map); // move operator
     
     /// @brief makes a new map, formed by combining two others
-    /// @returns Hashmap<TKey, TValue>& the new map to be created
+    /// @returns Hashmap<TKey, TValue> the new map to be created
     /// @param other the map to add to the current map
     /// @remarks if the two maps contain items with the same keys, the conflicting items of the right map will be ignored.
-    Hashmap<TKey, TValue>& operator+(const Hashmap<TKey, TValue>& other) const;
+    Hashmap<TKey, TValue> operator+(const Hashmap<TKey, TValue>& other) const;
 
     /// @brief modifies this map by adding the items of another map
     /// @returns Hashmap<TKey, TValue>& a reference to this map
@@ -114,8 +115,11 @@ private:
     size_t _bucket_count;
     size_t _item_count;
 
-    void copy_from(Node_t** source, Node_t** destination, size_t size);
+    Hashmap(int count);
+
+    void copy_from(Node_t** source, size_t size);
     Node_t* get_node(hash_t hval, const TKey& key);
+    const Node_t* get_node(hash_t hval, const TKey& key) const;
     void add_node(hash_t hval, const TKey& key, const TValue& value);
 };
 

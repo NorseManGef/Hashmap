@@ -1,3 +1,4 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
 #include "gravedata.h"
 #include "hashmap.h"
@@ -62,8 +63,6 @@ TEST_SUITE("constructors") {
         CHECK_EQ(9867, newMap.get(1));
         CHECK_EQ(1, gint::count());
     }
-
-    // TODO iterator constructor tests
 
     TEST_CASE("test destructor with empty map") {
         gint::init();
@@ -241,6 +240,29 @@ TEST_SUITE("methods") {
 
         CHECK_EQ(2, map.size());
     }
+
+    TEST_CASE("test clear with empty map") {
+        gint::init();
+
+        gimap map;
+
+        map.clear();
+
+        CHECK_EQ(0, map.size());
+        CHECK_EQ(0, gint::count());
+    }
+
+    TEST_CASE("test clear with non-empty map") {
+        gint::init();
+
+        gimap map;
+        map.add(1, 9867);
+
+        map.clear();
+
+        CHECK_EQ(0, map.size());
+        CHECK_EQ(0, gint::count());
+    }
 }
 
 TEST_SUITE("operators") {
@@ -340,7 +362,7 @@ TEST_SUITE("operators") {
         CHECK_EQ(9867, newMap.get(1));
         CHECK_EQ(9999, newMap.get(2));
     }
-    TEST_CASE("test append operator with empty left map"){
+    TEST_CASE("test append operator with empty left map") {
         gint::init();
 
         gimap map;
@@ -353,7 +375,7 @@ TEST_SUITE("operators") {
         CHECK_EQ(1, newMap.size());
         CHECK_EQ(9867, newMap.get(1));
     }
-    TEST_CASE("test append operator with empty right map"){
+    TEST_CASE("test append operator with empty right map") {
         gint::init();
 
         gimap map;
@@ -373,14 +395,14 @@ TEST_SUITE("operators") {
         gimap map;
         gimap otherMap;
 
-        map+=otherMap;
+        map += otherMap;
 
         CHECK_EQ(0, gint::count());
         CHECK_EQ(0, map.size());
     }
     TEST_CASE("test append equals operator with non duplicate map") {
         gint::init();
-        
+
         gimap map;
         map.add(1, 9867);
         map.add(2, 9999);
@@ -388,7 +410,7 @@ TEST_SUITE("operators") {
         otherMap.add(3, 2146);
         otherMap.add(4, 20);
 
-        map+=otherMap;
+        map += otherMap;
 
         CHECK_EQ(6, gint::count());
         CHECK_EQ(4, map.size());
@@ -407,34 +429,34 @@ TEST_SUITE("operators") {
         otherMap.add(1, 3);
         otherMap.add(2, 1);
 
-        map+=otherMap;
+        map += otherMap;
 
         CHECK_EQ(4, gint::count());
         CHECK_EQ(2, map.size());
         CHECK_EQ(9867, map.get(1));
         CHECK_EQ(9999, map.get(2));
     }
-    TEST_CASE("test append equals operator with empty left map"){
+    TEST_CASE("test append equals operator with empty left map") {
         gint::init();
 
         gimap map;
         gimap otherMap;
         otherMap.add(1, 9867);
 
-        map+=otherMap;
+        map += otherMap;
 
         CHECK_EQ(2, gint::count());
         CHECK_EQ(1, map.size());
         CHECK_EQ(9867, map.get(1));
     }
-    TEST_CASE("test append equals operator with empty right map"){
+    TEST_CASE("test append equals operator with empty right map") {
         gint::init();
 
         gimap map;
         map.add(1, 9867);
         gimap otherMap;
 
-        map+=otherMap;
+        map += otherMap;
 
         CHECK_EQ(2, gint::count());
         CHECK_EQ(1, map.size());
@@ -445,11 +467,11 @@ TEST_SUITE("operators") {
         gimap map;
         gimap otherMap;
 
-        CHECK(map==otherMap);
+        CHECK(map == otherMap);
 
         map.add(1, 2);
 
-        CHECK_FALSE(map==otherMap);
+        CHECK_FALSE(map == otherMap);
     }
     TEST_CASE("test equals operator with non-empty map") {
         gimap map;
@@ -459,22 +481,22 @@ TEST_SUITE("operators") {
         otherMap.add(1, 9867);
         otherMap.add(2, 9999);
 
-        CHECK(map==otherMap);
+        CHECK(map == otherMap);
 
         map.add(3, 0);
 
-        CHECK_FALSE(map==otherMap);
+        CHECK_FALSE(map == otherMap);
     }
 
     TEST_CASE("test !equals operator with empty map") {
         gimap map;
         gimap otherMap;
 
-        CHECK_FALSE(map!=otherMap);
-        
+        CHECK_FALSE(map != otherMap);
+
         map.add(1, 0);
 
-        CHECK(map!=otherMap);
+        CHECK(map != otherMap);
     }
     TEST_CASE("test !equals operator with non-empty map") {
         gimap map;
@@ -484,10 +506,10 @@ TEST_SUITE("operators") {
         otherMap.add(1, 9867);
         otherMap.add(2, 9999);
 
-        CHECK_FALSE(map!=otherMap);
+        CHECK_FALSE(map != otherMap);
 
         map.add(3, 0);
 
-        CHECK(map!=otherMap);
+        CHECK(map != otherMap);
     }
 }
