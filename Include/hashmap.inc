@@ -31,8 +31,7 @@ TKV TMAP::Hashmap(int count) : _bucket_count(count), _item_count(0) {
 }
 
 TKV TMAP::Hashmap(const Hashmap &other)
-    : _bucket_count(other._bucket_count), _item_count(other._item_count) {
-    _buckets = new Node_t *[_bucket_count];
+    : _bucket_count(other._bucket_count), _item_count(0), _buckets(nullptr) {
     copy_from(other._buckets, _bucket_count);
 }
 
@@ -91,27 +90,29 @@ TKV TValue TMAP::remove(const TKey &key) {
     hash_t hval = hash(key);
     Node_t *bucket = _buckets[hval % _bucket_count];
 
-    Node_t *current = bucket;
-    Node_t *parent = bucket;
+    if (bucket != nullptr) {
+        Node_t *current = bucket;
+        Node_t *parent = bucket;
 
-    if (current->key == key) {
-        TValue val = current->data;
-        _buckets[hval % _bucket_count] = current->next;
-        delete current;
-        _item_count--;
-        return val;
-    }
-
-    while (current != nullptr) {
-        current = current->next;
         if (current->key == key) {
             TValue val = current->data;
-            parent->next = current->next;
+            _buckets[hval % _bucket_count] = current->next;
             delete current;
             _item_count--;
             return val;
         }
-        parent = parent->next;
+
+        while (current != nullptr) {
+            current = current->next;
+            if (current->key == key) {
+                TValue val = current->data;
+                parent->next = current->next;
+                delete current;
+                _item_count--;
+                return val;
+            }
+            parent = parent->next;
+        }
     }
     throw key_not_found("No node found for key");
 }
@@ -131,14 +132,14 @@ TKV void TMAP::clear() {
             delete parent;
             parent = current;
         }
-        delete parent;
+        _buckets[i] = nullptr;
     }
     _item_count = 0;
 }
 
 TKV Hashmap<TKey, TValue> &TMAP::operator=(const Hashmap<TKey, TValue> &map) {
     if (this != &map) {
-        copy_from(map._buckets, _buckets, map._item_count);
+        copy_from(map._buckets, map._item_count);
     }
     return *this;
 }
@@ -189,53 +190,50 @@ TMAP::operator+=(const Hashmap<TKey, TValue> &other) {
 }
 
 TKV bool TMAP::operator==(const Hashmap<TKey, TValue> &other) const {
-    if (_item_count != other._item_count ||
-        _bucket_count != other._bucket_count) {
+    if (_item_count != other._item_count) {
         return false;
     }
     for (int i = 0; i < _bucket_count; ++i) {
-        Node_t *current = _buckets[i];
-        Node_t *other_current = other._buckets[i];
-        while (current != nullptr) {
-            if (other_current == nullptr) {
+        for (Node_t *current = _buckets[i]; current != nullptr;
+             current = current->next) {
+            const Node_t *other_node =
+                other.get_node(hash(current->key), current->key);
+            if (other_node == nullptr || other_node->data != current->data) {
                 return false;
             }
-            if (current->key != other_current->key ||
-                current->data != other_current->data) {
-                return false;
-            }
-            current = current->next;
-            other_current = other_current->next;
-        }
-        if (other_current != nullptr) {
-            return false;
         }
     }
     return true;
 }
 
 TKV bool TMAP::operator!=(const Hashmap<TKey, TValue> &other) const {
-    if (_item_count != other._item_count ||
-        _bucket_count != other._bucket_count) {
+    if (_item_count != other._item_count) {
         return true;
     }
     for (int i = 0; i < _bucket_count; ++i) {
-        Node_t *current = _buckets[i];
-        Node_t *other_current = other._buckets[i];
-        while (current != nullptr) {
-            if (other_current == nullptr) {
+        for (Node_t *current = _buckets[i]; current != nullptr;
+             current = current->next) {
+            const Node_t *other_node =
+                other.get_node(hash(current->key), current->key);
+            if (other_node == nullptr || other_node->data != current->data) {
                 return true;
             }
-            if (current->key != other_current->key ||
-                current->data != other_current->data) {
-                return true;
-            }
-        }
-        if (other_current != nullptr) {
-            return true;
         }
     }
     return false;
+}
+
+TKV std::ostream &operator<<(std::ostream &out,
+                             const Hashmap<TKey, TValue> &map) {
+    out << "{ ";
+    for (int i = 0; i < map._bucket_count; ++i) {
+        for (Node<TKey, TValue> *current = map._buckets[i]; current != nullptr;
+             current = current->next) {
+            out << "(" << current->key << ", " << current->data << ") ";
+        }
+    }
+    out << "}";
+    return out;
 }
 
 TKV Node<TKey, TValue> *TMAP::get_node(hash_t hval, const TKey &key) {
@@ -266,16 +264,20 @@ TKV void TMAP::add_node(hash_t hval, const TKey &key, const TValue &value) {
         _buckets[hval % _bucket_count] = node;
     } else {
         Node_t *current = bucket;
-        for (; current->next != nullptr; current = current->next)
-            ;
+        for (; current->next != nullptr; current = current->next) {
+        }
         current->next = node;
     }
     _item_count++;
 }
 
 TKV void TMAP::copy_from(Node_t **source, size_t size) {
-    clear();
-    delete[] _buckets;
+    if (_buckets != nullptr) {
+        clear();
+        delete[] _buckets;
+        _item_count = 0;
+    }
+
     _buckets = new Node_t *[size];
     for (int i = 0; i < size; ++i) {
         Node_t *source_current = source[i];
@@ -283,19 +285,20 @@ TKV void TMAP::copy_from(Node_t **source, size_t size) {
         if (source_current != nullptr) {
             _buckets[i] = new Node_t(source_current->key, source_current->data);
             _item_count++;
-        }
-
-        Node_t *dest_current = _buckets[i];
-        source_current = source_current->next;
-
-        while (source_current != nullptr) {
-            dest_current->next =
-                new Node_t(source_current->key, source_current->data);
-            _item_count++;
-            dest_current = dest_current->next;
+            Node_t *dest_current = _buckets[i];
             source_current = source_current->next;
+
+            while (source_current != nullptr) {
+                dest_current->next =
+                    new Node_t(source_current->key, source_current->data);
+                _item_count++;
+                dest_current = dest_current->next;
+                source_current = source_current->next;
+            }
+            dest_current->next = nullptr;
+        } else {
+            _buckets[i] = nullptr;
         }
-        dest_current->next = nullptr;
     }
     _bucket_count = size;
 }

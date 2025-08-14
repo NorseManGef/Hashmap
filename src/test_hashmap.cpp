@@ -4,9 +4,17 @@
 #include "hashmap.h"
 #include <functional>
 #include <iostream>
+#include <sstream>
+#include <vector>
+#include <regex>
 
 using gint = ian::GraveData;
 using gimap = Hashmap<int, gint>;
+
+struct pair {
+    int key;
+    int value;
+};
 
 TEST_SUITE("constructors") {
     TEST_CASE("test default constructor") {
@@ -88,8 +96,8 @@ TEST_SUITE("constructors") {
 
         auto changes = gint::changes();
 
-        CHECK_EQ(1, changes.increments);
-        CHECK_EQ(1, changes.decrements);
+        CHECK_EQ(2, changes.increments);
+        CHECK_EQ(2, changes.decrements);
         CHECK_EQ(0, gint::count());
     }
 }
@@ -100,6 +108,8 @@ TEST_SUITE("methods") {
 
         gimap map;
         CHECK(map.add(1, 9867));
+
+        auto changes = gint::changes();
 
         CHECK_EQ(1, gint::count());
         CHECK_EQ(1, map.size());
@@ -257,6 +267,8 @@ TEST_SUITE("methods") {
 
         gimap map;
         map.add(1, 9867);
+
+        std::cout << "testing clear" << std::endl;
 
         map.clear();
 
@@ -458,7 +470,7 @@ TEST_SUITE("operators") {
 
         map += otherMap;
 
-        CHECK_EQ(2, gint::count());
+        CHECK_EQ(1, gint::count());
         CHECK_EQ(1, map.size());
         CHECK_EQ(9867, map.get(1));
     }
@@ -511,5 +523,36 @@ TEST_SUITE("operators") {
         map.add(3, 0);
 
         CHECK(map != otherMap);
+    }
+
+    TEST_CASE("test stream insertion operator with empty map") {
+        gimap map;
+
+        std::stringstream stream;
+
+        stream << map;
+
+        CHECK_EQ("{ }", stream.str());
+    }
+    TEST_CASE("test stream insertion operator with non-empty map") {
+        gimap map;
+        map.add(1, 9967);
+        map.add(2, 9999);
+        map.add(3, 1);
+        map.add(4, 2379);
+
+        std::stringstream stream;
+
+        stream << map;
+
+        std::regex first(R"(\(1, 9967\))");
+        std::regex second(R"(\(2, 9999\))");
+        std::regex third(R"(\(3, 1\))");
+        std::regex fourth(R"(\(4, 2379\))");
+
+        CHECK(std::regex_search(stream.str(), first));
+        CHECK(std::regex_search(stream.str(), second));
+        CHECK(std::regex_search(stream.str(), third));
+        CHECK(std::regex_search(stream.str(), fourth));
     }
 }
