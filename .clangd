@@ -8,6 +8,7 @@ CompileFlags:
   Add: 
     - -xc++-header
     - -DCLANGD_ONLY
+    - -DDEBUG
     - -Wall
     - -Wextra
   
