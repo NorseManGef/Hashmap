@@ -258,10 +258,15 @@ TKV const Node<TKey, TValue> *TMAP::get_node(hash_t hval,
 }
 
 TKV void TMAP::add_node(hash_t hval, const TKey &key, const TValue &value) {
+    add_node(hval, key, value, _buckets, _bucket_count);
+}
+
+TKV void TMAP::add_node(hash_t hval, const TKey &key, const TValue &value,
+                        Node_t **target_buckets, size_t target_count) {
     Node_t *node = new Node_t(key, value);
-    Node_t *bucket = _buckets[hval % _bucket_count];
+    Node_t *bucket = target_buckets[hval % target_count];
     if (bucket == nullptr) {
-        _buckets[hval % _bucket_count] = node;
+        target_buckets[hval % target_count] = node;
     } else {
         Node_t *current = bucket;
         for (; current->next != nullptr; current = current->next) {
@@ -301,4 +306,27 @@ TKV void TMAP::copy_from(Node_t **source, size_t size) {
         }
     }
     _bucket_count = size;
+}
+
+TKV void TMAP::resize() {
+    Node_t **new_buckets = new Node_t *[_bucket_count * 2];
+    for (int i = 0; i < _bucket_count * 2; ++i) {
+        new_buckets[i] = nullptr;
+    }
+    _item_count = 0;
+    for (Node_t **bucket = _buckets; bucket < _buckets + _bucket_count;
+         ++bucket) {
+        for (Node_t *current = *bucket; current != nullptr;
+             current = current->next) {
+            hash_t hval = hash(current->key);
+            add_node(hval, current->key, current->data, new_buckets,
+                     _bucket_count * 2);
+        }
+    }
+    size_t temp_count = _item_count;
+    clear();
+    _item_count = temp_count;
+    delete[] _buckets;
+    _buckets = new_buckets;
+    _bucket_count = _bucket_count * 2;
 }
