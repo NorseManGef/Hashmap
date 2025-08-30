@@ -4,9 +4,9 @@
 #include "hashmap.h"
 #include <functional>
 #include <iostream>
+#include <regex>
 #include <sstream>
 #include <vector>
-#include <regex>
 
 using gint = ian::GraveData;
 using gimap = Hashmap<int, gint>;
@@ -15,6 +15,12 @@ struct pair {
     int key;
     int value;
 };
+
+#ifdef DEBUG
+void forceResize(gimap& map) {
+    map.resize();
+}
+#endif
 
 TEST_SUITE("constructors") {
     TEST_CASE("test default constructor") {
@@ -536,23 +542,68 @@ TEST_SUITE("operators") {
     }
     TEST_CASE("test stream insertion operator with non-empty map") {
         gimap map;
-        map.add(1, 9967);
-        map.add(2, 9999);
-        map.add(3, 1);
-        map.add(4, 2379);
+        int keys[] = {1, 2, 3, 4};
+        int values[] = {9967, 9999, 1, 2379};
+        for (int i = 0; i < 4; ++i) {
+            map.add(keys[i], values[i]);
+        }
 
         std::stringstream stream;
 
         stream << map;
 
-        std::regex first(R"(\(1, 9967\))");
-        std::regex second(R"(\(2, 9999\))");
-        std::regex third(R"(\(3, 1\))");
-        std::regex fourth(R"(\(4, 2379\))");
+        std::string s = stream.str();
 
-        CHECK(std::regex_search(stream.str(), first));
-        CHECK(std::regex_search(stream.str(), second));
-        CHECK(std::regex_search(stream.str(), third));
-        CHECK(std::regex_search(stream.str(), fourth));
+        std::regex full("\\{ (\\(\\w+, \\w+\\) ?)*\\}");
+
+        INFO("s = ", s);
+
+        std::cmatch full_match;
+
+        bool full_success = std::regex_match(s.c_str(), full_match, full);
+        REQUIRE(full_success);
+
+        REQUIRE_GE(s.find("(3, 1)"), 0);
+        REQUIRE_GE(s.find("(4, 2379)"), 0);
+        REQUIRE_GE(s.find("(1, 9967)"), 0);
+        REQUIRE_GE(s.find("(2, 9999)"), 0);
+    }
+
+    TEST_CASE("test resize with empty map") {
+        gint::init();
+        gimap map;
+
+        #ifndef DEBUG
+        INFO("DEBUG macro not defined");
+        REQUIRE(false);
+        #else
+            forceResize(map);
+        #endif
+
+        CHECK_EQ(0, gint::count());
+        CHECK_EQ(0, map.size());
+    }
+    TEST_CASE("test resize with non-empty map") {
+        gint::init();
+        gimap map;
+
+        int keys[] = {1, 2, 3, 4};
+        int values[] = {9967, 9999, 1, 2379};
+        for (int i = 0; i < 4; ++i) {
+            map.add(keys[i], values[i]);
+        }
+        
+        #ifndef DEBUG
+        #error "DEBUG macro not defined"
+        REQUIRE(false);
+        #else
+            forceResize(map);
+        #endif
+
+        CHECK_EQ(4, gint::count());
+        CHECK_EQ(4, map.size());
+        CHECK_EQ(9967, map.get(1));
+        CHECK_EQ(9999, map.get(2));
+        CHECK_EQ(1, map.get(3));
     }
 }
