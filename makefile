@@ -1,5 +1,5 @@
 bin/testmap: Include/hashmap.h Include/hashmap.inc src/test_hashmap.cpp | bin
-	g++ -o bin/testmap -I Include src/test_hashmap.cpp
+	g++ -DDEBUG -g -O0 -o bin/testmap -I Include src/test_hashmap.cpp
 
 test: bin/testmap
 	./bin/testmap
