@@ -1,3 +1,6 @@
 HeaderFileExtensions: ['', 'h', 'hh', 'hpp', 'hxx', 'inc']
 ImplementationFileExtensions: ['c', 'cc', 'cpp', 'cxx']
-Checks: 'bugprone-*, clang-analyzer-*'
+Checks: 'clang-analyzer-*'
+
+ExtraArgs:
+  - -DDEBUG

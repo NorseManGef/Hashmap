@@ -3,6 +3,9 @@
     "arguments": [
       "/nix/store/3ix5h74n7ar9950vwzp4dxmil70pmx0k-gcc-wrapper-13.3.0/bin/g++",
       "-c",
+      "-DDEBUG",
+      "-g",
+      "-O0",
       "-I",
       "Include",
       "-o",
