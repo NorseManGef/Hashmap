@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iterator>
 #include <stdexcept>
+#include <vector>
 
 #pragma once
 
@@ -135,6 +136,15 @@ TKV void TMAP::clear() {
         _buckets[i] = nullptr;
     }
     _item_count = 0;
+}
+
+TKV bool TMAP::optimize() {
+    size_t num = optimized_size();
+    if (num < _bucket_count) {
+        resize(num);
+        return true;
+    }
+    return false;
 }
 
 TKV Hashmap<TKey, TValue> &TMAP::operator=(const Hashmap<TKey, TValue> &map) {
@@ -308,9 +318,44 @@ TKV void TMAP::copy_from(Node_t **source, size_t size) {
     _bucket_count = size;
 }
 
-TKV void TMAP::resize() {
-    Node_t **new_buckets = new Node_t *[_bucket_count * 2];
-    for (int i = 0; i < _bucket_count * 2; ++i) {
+TKV size_t TMAP::optimized_size() {
+
+    size_t num_buckets = DEFAULT_HASHMAP_BUCKET_COUNT;
+
+    bool isUnoptimized = false;
+    while (num_buckets < _bucket_count) {
+
+        int *count = new int[num_buckets]();
+
+        for (Node_t **bucket = _buckets; bucket < _buckets + _bucket_count;
+             ++bucket) {
+            for (Node_t *current = *bucket; current != nullptr;
+                 current = current->next) {
+                ++count[hash(current->key) % num_buckets];
+            }
+        }
+
+        for (int x = 0; x < num_buckets; ++x) {
+            if (count[x] > 16) {
+                isUnoptimized = true;
+                break;
+            }
+        }
+        delete[] count;
+
+        if (isUnoptimized == false) {
+            break;
+        }
+        num_buckets += 2;
+    }
+    return num_buckets;
+}
+
+TKV void TMAP::resize() { resize(_bucket_count * 2); }
+
+TKV void TMAP::resize(size_t newSize) {
+    Node_t **new_buckets = new Node_t *[newSize];
+    for (int i = 0; i < newSize; ++i) {
         new_buckets[i] = nullptr;
     }
     _item_count = 0;
@@ -319,8 +364,7 @@ TKV void TMAP::resize() {
         for (Node_t *current = *bucket; current != nullptr;
              current = current->next) {
             hash_t hval = hash(current->key);
-            add_node(hval, current->key, current->data, new_buckets,
-                     _bucket_count * 2);
+            add_node(hval, current->key, current->data, new_buckets, newSize);
         }
     }
     size_t temp_count = _item_count;
@@ -328,5 +372,5 @@ TKV void TMAP::resize() {
     _item_count = temp_count;
     delete[] _buckets;
     _buckets = new_buckets;
-    _bucket_count = _bucket_count * 2;
+    _bucket_count = newSize;
 }

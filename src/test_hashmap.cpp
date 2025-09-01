@@ -20,6 +20,9 @@ struct pair {
 void forceResize(gimap& map) {
     map.resize();
 }
+int debugMap(gimap& map) {
+    return map._bucket_count;
+}
 #endif
 
 TEST_SUITE("constructors") {
@@ -274,12 +277,50 @@ TEST_SUITE("methods") {
         gimap map;
         map.add(1, 9867);
 
-        std::cout << "testing clear" << std::endl;
-
         map.clear();
 
         CHECK_EQ(0, map.size());
         CHECK_EQ(0, gint::count());
+    }
+
+    TEST_CASE("test optimize with empty map") {
+        gint::init();
+
+        gimap map;
+
+        CHECK_FALSE(map.optimize());
+
+        CHECK_EQ(16, debugMap(map));
+        CHECK_EQ(0, gint::count());
+        CHECK_EQ(0, map.size());
+    }
+    TEST_CASE("test optimize false with non-empty map") {
+        gint::init();
+
+        gimap map;
+        map.add(1, 9999);
+
+        CHECK_FALSE(map.optimize());
+
+        CHECK_EQ(16, debugMap(map));
+        CHECK_EQ(1, gint::count());
+        CHECK_EQ(1, map.size());
+        CHECK_EQ(9999, map.get(1));
+    }
+    TEST_CASE("test optimize true") {
+        gint::init();
+
+        gimap map;
+        map.add(1, 9999);
+
+        forceResize(map);
+
+        CHECK(map.optimize());
+        
+        CHECK_EQ(16, debugMap(map));
+        CHECK_EQ(1, gint::count());
+        CHECK_EQ(1, map.size());
+        CHECK_EQ(9999, map.get(1));
     }
 }
 
@@ -568,42 +609,42 @@ TEST_SUITE("operators") {
         REQUIRE_GE(s.find("(1, 9967)"), 0);
         REQUIRE_GE(s.find("(2, 9999)"), 0);
     }
+}
 
-    TEST_CASE("test resize with empty map") {
-        gint::init();
-        gimap map;
+TEST_CASE("test resize with empty map") {
+    gint::init();
+    gimap map;
 
-        #ifndef DEBUG
-        INFO("DEBUG macro not defined");
-        REQUIRE(false);
-        #else
-            forceResize(map);
-        #endif
+    #ifndef DEBUG
+    INFO("DEBUG macro not defined");
+    REQUIRE(false);
+    #else
+        forceResize(map);
+    #endif
 
-        CHECK_EQ(0, gint::count());
-        CHECK_EQ(0, map.size());
+    CHECK_EQ(0, gint::count());
+    CHECK_EQ(0, map.size());
+}
+TEST_CASE("test resize with non-empty map") {
+    gint::init();
+    gimap map;
+
+    int keys[] = {1, 2, 3, 4};
+    int values[] = {9967, 9999, 1, 2379};
+    for (int i = 0; i < 4; ++i) {
+        map.add(keys[i], values[i]);
     }
-    TEST_CASE("test resize with non-empty map") {
-        gint::init();
-        gimap map;
+    
+    #ifndef DEBUG
+    #error "DEBUG macro not defined"
+    REQUIRE(false);
+    #else
+        forceResize(map);
+    #endif
 
-        int keys[] = {1, 2, 3, 4};
-        int values[] = {9967, 9999, 1, 2379};
-        for (int i = 0; i < 4; ++i) {
-            map.add(keys[i], values[i]);
-        }
-        
-        #ifndef DEBUG
-        #error "DEBUG macro not defined"
-        REQUIRE(false);
-        #else
-            forceResize(map);
-        #endif
-
-        CHECK_EQ(4, gint::count());
-        CHECK_EQ(4, map.size());
-        CHECK_EQ(9967, map.get(1));
-        CHECK_EQ(9999, map.get(2));
-        CHECK_EQ(1, map.get(3));
-    }
+    CHECK_EQ(4, gint::count());
+    CHECK_EQ(4, map.size());
+    CHECK_EQ(9967, map.get(1));
+    CHECK_EQ(9999, map.get(2));
+    CHECK_EQ(1, map.get(3));
 }

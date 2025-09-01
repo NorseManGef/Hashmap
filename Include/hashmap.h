@@ -33,6 +33,7 @@ template <typename TKey, typename TValue> class Hashmap {
   public:
     #ifdef DEBUG
         friend void forceResize(Hashmap<TKey, TValue> &map);
+        friend int debugMap(Hashmap<TKey, TValue> &map);
     #endif
     /// @brief default constructor
     Hashmap();
@@ -87,6 +88,10 @@ template <typename TKey, typename TValue> class Hashmap {
 
     /// @brief removes all data in the map
     void clear();
+    
+    /// @brief reduces the amount of extra space in the map, freeing extra memory where available.
+    /// @returns bool if any memory has been freed
+    bool optimize();
 
     Hashmap<TKey, TValue> &
     operator=(const Hashmap<TKey, TValue> &map); // copy operator
@@ -129,7 +134,10 @@ template <typename TKey, typename TValue> class Hashmap {
     void add_node(hash_t hval, const TKey &key, const TValue &value,
                   Node_t **target_buckets, size_t target_count);
 
+    size_t optimized_size();
+
     void resize();
+    void resize(size_t newSize);
 };
 
 #include "hashmap.inc"
