@@ -322,6 +322,25 @@ TEST_SUITE("methods") {
         CHECK_EQ(1, map.size());
         CHECK_EQ(9999, map.get(1));
     }
+    TEST_CASE("test optimize true with large map") {
+        gint::init();
+
+        gimap map;
+        for (int i = 0; i < 64; ++i) {
+            map.add(i, i+1000);
+        }
+
+        forceResize(map);
+
+        CHECK(map.optimize());
+
+        CHECK_EQ(64, gint::count());
+        CHECK_EQ(64, map.size());
+        for (int i = 0; i < 64; ++i) {
+            REQUIRE_EQ(i+1000, map.get(i));
+        }
+        CHECK_EQ(16, debugMap(map));
+    }
 }
 
 TEST_SUITE("operators") {
