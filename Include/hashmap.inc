@@ -325,7 +325,11 @@ TKV size_t TMAP::optimized_size() {
     bool isUnoptimized = false;
     while (num_buckets < _bucket_count) {
 
-        int *count = new int[num_buckets]();
+        int *count = new int[num_buckets];
+
+        for (int i = 0; i < num_buckets; ++i) {
+            count[i] = 0;
+        }
 
         for (Node_t **bucket = _buckets; bucket < _buckets + _bucket_count;
              ++bucket) {
