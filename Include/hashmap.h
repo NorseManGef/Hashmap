@@ -33,7 +33,7 @@ template <typename TKey, typename TValue> class Hashmap {
   public:
     #ifdef DEBUG
         friend void forceResize(Hashmap<TKey, TValue> &map);
-        friend int debugMap(Hashmap<TKey, TValue> &map);
+        friend int getBucketCount(Hashmap<TKey, TValue> &map);
     #endif
     /// @brief default constructor
     Hashmap();

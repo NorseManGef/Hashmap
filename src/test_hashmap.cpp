@@ -20,7 +20,7 @@ struct pair {
 void forceResize(gimap& map) {
     map.resize();
 }
-int debugMap(gimap& map) {
+int getBucketCount(gimap& map) {
     return map._bucket_count;
 }
 #endif
@@ -290,7 +290,7 @@ TEST_SUITE("methods") {
 
         CHECK_FALSE(map.optimize());
 
-        CHECK_EQ(16, debugMap(map));
+        CHECK_EQ(16, getBucketCount(map));
         CHECK_EQ(0, gint::count());
         CHECK_EQ(0, map.size());
     }
@@ -302,7 +302,7 @@ TEST_SUITE("methods") {
 
         CHECK_FALSE(map.optimize());
 
-        CHECK_EQ(16, debugMap(map));
+        CHECK_EQ(16, getBucketCount(map));
         CHECK_EQ(1, gint::count());
         CHECK_EQ(1, map.size());
         CHECK_EQ(9999, map.get(1));
@@ -317,7 +317,7 @@ TEST_SUITE("methods") {
 
         CHECK(map.optimize());
         
-        CHECK_EQ(16, debugMap(map));
+        CHECK_EQ(16, getBucketCount(map));
         CHECK_EQ(1, gint::count());
         CHECK_EQ(1, map.size());
         CHECK_EQ(9999, map.get(1));
@@ -339,7 +339,7 @@ TEST_SUITE("methods") {
         for (int i = 0; i < 64; ++i) {
             REQUIRE_EQ(i+1000, map.get(i));
         }
-        CHECK_EQ(16, debugMap(map));
+        CHECK_EQ(16, getBucketCount(map));
     }
 }
 
